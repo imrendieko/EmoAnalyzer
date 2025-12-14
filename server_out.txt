@@ -1,0 +1,13 @@
+============================================================
+SISTEM ANALISIS EMOSI MAHASISWA - WEBSITE UTUH
+============================================================
+URL Akses: http://localhost:5000
+Statistics: http://localhost:5000/statistics
+History: http://localhost:5000/history
+About: http://localhost:5000/about
+Tutorial: http://localhost:5000/tutorial
+============================================================
+Tekan CTRL+C untuk menghentikan server
+============================================================
+ * Serving Flask app 'app'
+ * Debug mode: on

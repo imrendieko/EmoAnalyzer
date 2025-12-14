@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>EmoAnalyzer - Analisis Emosi Mahasiswa</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #667eea;
+        --secondary: #764ba2;
+        --success: #28a745;
+        --info: #17a2b8;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --dark: #343a40;
+        --light: #f8f9fa;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        line-height: 1.6;
+      }
+
+      /* Navigation */
+      .navbar {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 1rem 0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 2rem;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary);
+        text-decoration: none;
+      }
+
+      .nav-links {
+        display: flex;
+        list-style: none;
+        gap: 2rem;
+      }
+
+      .nav-links a {
+        text-decoration: none;
+        color: var(--dark);
+        font-weight: 500;
+        transition: color 0.3s;
+      }
+
+      .nav-links a:hover {
+        color: var(--primary);
+      }
+
+      /* Main Container */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      /* Hero Section */
+      .hero {
+        text-align: center;
+        color: white;
+        margin-bottom: 3rem;
+      }
+
+      .hero h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .hero p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      /* Main Content */
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 3rem;
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Cards */
+      .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 1.5rem;
+      }
+
+      .card-body {
+        padding: 1.5rem;
+      }
+
+      /* Form Styles */
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--dark);
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+        font-family: inherit;
+      }
+
+      input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-secondary {
+        background: var(--dark);
+      }
+
+      .btn-success {
+        background: var(--success);
+      }
+
+      .btn-danger {
+        background: var(--danger);
+      }
+
+      /* Results Section */
+      .results {
+        display: none;
+      }
+
+      .emotion-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+      }
+
+      .emotion-card {
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+        color: white;
+      }
+
+      .emotion-card.happy {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+      }
+      .emotion-card.sad {
+        background: linear-gradient(135deg, #2196f3, #1976d2);
+      }
+      .emotion-card.angry {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+      }
+
+      .emotion-score {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+      }
+
+      .progress-bar {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+        height: 20px;
+        margin: 0.5rem 0;
+      }
+
+      .progress {
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        transition: width 0.5s ease;
+      }
+
+      .dominant-emotion {
+        text-align: center;
+        padding: 1.5rem;
+        background: var(--dark);
+        color: white;
+        border-radius: 10px;
+        margin: 1rem 0;
+      }
+
+      /* Dashboard */
+      .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        color: var(--dark);
+        font-weight: 500;
+      }
+
+      /* Loading */
+      .loading {
+        text-align: center;
+        padding: 2rem;
+        display: none;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Error */
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        display: none;
+      }
+
+      /* Footer */
+      .footer {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 2rem 0;
+        margin-top: 3rem;
+        text-align: center;
+      }
+
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <a
+          href="/"
+          class="logo"
+        >
+          <i class="fas fa-brain"></i> EmoAnalyzer
+        </a>
+        <ul class="nav-links">
+          <li>
+            <a href="/"><i class="fas fa-home"></i> Beranda</a>
+          </li>
+          <li>
+            <a href="/about"><i class="fas fa-info-circle"></i> Tentang</a>
+          </li>
+          <li>
+            <a href="/tutorial"><i class="fas fa-book"></i> Tutorial</a>
+          </li>
+          <li>
+            <a href="/riwayat"><i class="fas fa-history"></i> Riwayat</a>
+          </li>
+          <li>
+            <a href="/statistics"><i class="fas fa-chart-bar"></i> Statistik</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+      <!-- Hero Section -->
+      <div class="hero">
+        <h1><i class="fas fa-graduation-cap"></i> Analisis Emosi Mahasiswa</h1>
+        <p>Terhadap Tugas Akhir Menggunakan Vector Space Model Berbasis Text Mining</p>
+      </div>
+
+      <!-- Dashboard -->
+      <div class="dashboard-cards">
+        <div class="stat-card">
+          <div
+            class="stat-number"
+            id="totalAnalyses"
+          >
+            0
+          </div>
+          <div class="stat-label">Total Analisis</div>
+        </div>
+        <div class="stat-card">
+          <div
+            class="stat-number"
+            id="avgHappy"
+          >
+            0%
+          </div>
+          <div class="stat-label">Rata-rata Senang</div>
+        </div>
+        <div class="stat-card">
+          <div
+            class="stat-number"
+            id="avgSad"
+          >
+            0%
+          </div>
+          <div class="stat-label">Rata-rata Sedih</div>
+        </div>
+        <div class="stat-card">
+          <div
+            class="stat-number"
+            id="avgAngry"
+          >
+            0%
+          </div>
+          <div class="stat-label">Rata-rata Marah</div>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <!-- Analysis Form -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-line"></i> Analisis Emosi</h2>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="name"><i class="fas fa-user"></i> Nama Mahasiswa:</label>
+              <input
+                type="text"
+                id="name"
+                placeholder="Masukkan nama Anda (opsional)"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="comment"><i class="fas fa-comment"></i> Komentar tentang Tugas Akhir:</label>
+              <textarea
+                id="comment"
+                placeholder="Tuliskan perasaan Anda mengenai pengerjaan tugas akhir..."
+              ></textarea>
+            </div>
+
+            <button
+              class="btn"
+              onclick="analyzeEmotion()"
+            >
+              <i class="fas fa-play"></i> Analisis Emosi
+            </button>
+
+            <div
+              class="error"
+              id="errorMessage"
+            ></div>
+
+            <div
+              class="loading"
+              id="loading"
+            >
+              <div class="spinner"></div>
+              <p>Menganalisis emosi menggunakan Vector Space Model...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-pie"></i> Hasil Analisis</h2>
+          </div>
+          <div class="card-body">
+            <div
+              class="results"
+              id="results"
+            >
+              <div class="emotion-cards">
+                <div class="emotion-card happy">
+                  <h3><i class="fas fa-smile"></i> Vektor Senang</h3>
+                  <div
+                    class="emotion-score"
+                    id="happyScore"
+                  >
+                    0%
+                  </div>
+                  <div class="progress-bar">
+                    <div
+                      class="progress"
+                      id="happyBar"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                  <small>Intensitas: <span id="happyIntensity">-</span></small>
+                </div>
+
+                <div class="emotion-card sad">
+                  <h3><i class="fas fa-frown"></i> Vektor Sedih</h3>
+                  <div
+                    class="emotion-score"
+                    id="sadScore"
+                  >
+                    0%
+                  </div>
+                  <div class="progress-bar">
+                    <div
+                      class="progress"
+                      id="sadBar"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                  <small>Intensitas: <span id="sadIntensity">-</span></small>
+                </div>
+
+                <div class="emotion-card angry">
+                  <h3><i class="fas fa-angry"></i> Vektor Marah</h3>
+                  <div
+                    class="emotion-score"
+                    id="angryScore"
+                  >
+                    0%
+                  </div>
+                  <div class="progress-bar">
+                    <div
+                      class="progress"
+                      id="angryBar"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                  <small>Intensitas: <span id="angryIntensity">-</span></small>
+                </div>
+              </div>
+
+              <div class="dominant-emotion">
+                <h3><i class="fas fa-trophy"></i> Emosi Dominan: <span id="dominantEmotion">-</span></h3>
+                <p>Intensitas: <span id="dominantIntensity">-</span></p>
+              </div>
+
+              <div class="analysis-meta">
+                <p><strong>ID Analisis:</strong> <span id="analysisId">-</span></p>
+                <p><strong>Waktu:</strong> <span id="analysisTime">-</span></p>
+              </div>
+              <!-- Split counts chart -->
+              <div style="margin-top: 1rem">
+                <h4>Distribusi Dataset (Latih vs Uji)</h4>
+                <div style="max-width: 480px; margin-top: 10px">
+                  <canvas
+                    id="splitChart"
+                    width="480"
+                    height="240"
+                  ></canvas>
+                </div>
+                <div
+                  id="splitChartPlaceholder"
+                  style="color: #666; margin-top: 8px"
+                >
+                  Grafik akan muncul setelah Anda mengunggah CSV yang menyertakan kolom split / set.
+                </div>
+              </div>
+              <!-- Preprocessing table -->
+              <div style="margin-top: 1rem">
+                <h4>Langkah Preprocessing</h4>
+                <div style="overflow: auto; max-height: 220px">
+                  <table
+                    id="preprocessTable"
+                    style="width: 100%; border-collapse: collapse; font-size: 14px"
+                  >
+                    <thead>
+                      <tr style="background: #f1f1f1; text-align: left">
+                        <th style="padding: 8px; border: 1px solid #e0e0e0; width: 40px">No</th>
+                        <th style="padding: 8px; border: 1px solid #e0e0e0">Cleaning</th>
+                        <th style="padding: 8px; border: 1px solid #e0e0e0">Tokenizing</th>
+                        <th style="padding: 8px; border: 1px solid #e0e0e0">Stopword Removal</th>
+                        <th style="padding: 8px; border: 1px solid #e0e0e0">Stemming</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- rows inserted by JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div id="noResults">
+              <p style="text-align: center; color: #666; padding: 2rem">
+                <i
+                  class="fas fa-chart-bar"
+                  style="font-size: 3rem; margin-bottom: 1rem; display: block"
+                ></i>
+                Hasil analisis akan muncul di sini setelah Anda menganalisis komentar.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-bolt"></i> Akses Cepat</h2>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+            <!-- Tombol contoh dipindahkan ke Card 'Contoh Pengisian' di bawah -->
+            <a
+              href="/riwayat"
+              class="btn btn-success"
+            >
+              <i class="fas fa-history"></i> Riwayat Analisis
+            </a>
+            <a
+              href="/export/csv"
+              class="btn"
+            >
+              <i class="fas fa-download"></i> Export CSV
+            </a>
+            <a
+              href="/upload"
+              target="_blank"
+              class="btn"
+              style="background: #9c27b0"
+            >
+              <i class="fas fa-file-csv"></i> Upload CSV
+            </a>
+            <button
+              class="btn btn-secondary"
+              onclick="resetHistory()"
+              title="Hapus semua riwayat dan statistik"
+              style="background: #6c757d"
+            >
+              <i class="fas fa-trash-alt"></i> Reset Data
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Contoh Pengisian: diposisikan di bawah Akses Cepat -->
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-pencil-alt"></i> Contoh Pengisian</h2>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+            <button
+              class="btn"
+              onclick="testWithExample('saya senang dan bahagia dengan bimbingan dosen yang sangat membantu')"
+            >
+              <i class="fas fa-smile"></i> Contoh Senang
+            </button>
+            <button
+              class="btn btn-secondary"
+              onclick="testWithExample('saya sedih dan kecewa dengan ketidakpastian jadwal seminar yang terus berubah')"
+            >
+              <i class="fas fa-frown"></i> Contoh Sedih
+            </button>
+            <button
+              class="btn btn-danger"
+              onclick="testWithExample('saya marah dan kesal dengan sistem yang tidak jelas dan berubah-ubah terus')"
+            >
+              <i class="fas fa-angry"></i> Contoh Marah
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <p>&copy; 2025 EmoAnalyzer - <strong>Kelompok 3 RPL A 2022</strong></p>
+        <p>Rendi Eko Kurniawan (22050974007) | Lia Dwi Rusanti (22050974010) | Jihan Salsabilah (22050974013) | Siti Aulia Rahmadhani (22050974038)</p>
+      </div>
+    </footer>
+
+    <script>
+      // Fungsi utama analisis emosi
+      async function analyzeEmotion() {
+        const name = document.getElementById('name').value || 'Anonymous';
+        const comment = document.getElementById('comment').value;
+
+        if (!comment.trim()) {
+          showError('Silakan masukkan komentar terlebih dahulu!');
+          return;
+        }
+
+        hideError();
+
+        // Tampilkan loading, sembunyikan results
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('noResults').style.display = 'none';
+
+        try {
+          const response = await fetch('/analyze', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: name,
+              comment: comment,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+
+          if (result.error) {
+            showError('Error: ' + result.error);
+            return;
+          }
+
+          // Update UI dengan hasil
+          updateResults(result);
+          // Refresh statistics
+          loadStatistics();
+        } catch (error) {
+          console.error('Error:', error);
+          showError('Terjadi kesalahan: ' + error.message);
+        } finally {
+          document.getElementById('loading').style.display = 'none';
+        }
+      }
+
+      // Fungsi untuk memuat analisis berdasarkan ID
+      async function loadAnalysisById(analysisId) {
+        try {
+          const response = await fetch(`/history/${analysisId}`);
+          if (!response.ok) {
+            throw new Error('Analisis tidak ditemukan');
+          }
+
+          const result = await response.json();
+
+          // Update UI dengan hasil
+          updateResults(result);
+
+          // Tampilkan results
+          document.getElementById('results').style.display = 'block';
+          document.getElementById('noResults').style.display = 'none';
+        } catch (error) {
+          console.error('Error loading analysis:', error);
+          showError('Gagal memuat hasil analisis: ' + error.message);
+        }
+      }
+
+      function updateResults(result) {
+        // Update scores
+        document.getElementById('happyScore').textContent = result.scores.happy + '%';
+        document.getElementById('sadScore').textContent = result.scores.sad + '%';
+        document.getElementById('angryScore').textContent = result.scores.angry + '%';
+
+        // Update progress bars
+        document.getElementById('happyBar').style.width = result.scores.happy + '%';
+        document.getElementById('sadBar').style.width = result.scores.sad + '%';
+        document.getElementById('angryBar').style.width = result.scores.angry + '%';
+
+        // Update intensities
+        document.getElementById('happyIntensity').textContent = getIntensityText(result.scores.happy);
+        document.getElementById('sadIntensity').textContent = getIntensityText(result.scores.sad);
+        document.getElementById('angryIntensity').textContent = getIntensityText(result.scores.angry);
+
+        // Update dominant emotion
+        document.getElementById('dominantEmotion').textContent = result.dominant_emotion;
+        document.getElementById('dominantIntensity').textContent = result.intensity;
+
+        // Update metadata
+        document.getElementById('analysisId').textContent = result.id || result.analysis_id;
+        document.getElementById('analysisTime').textContent = result.timestamp;
+
+        // Tampilkan results
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('noResults').style.display = 'none';
+
+        // Refresh preprocessing table to include the latest analysis
+        loadPreprocessingTable();
+        // Populate split-chart if backend provided split_counts
+        if (result.split_counts) populateSplitChart(result.split_counts);
+      }
+
+      function getIntensityText(score) {
+        if (score >= 80) return 'Sangat Tinggi';
+        if (score >= 60) return 'Tinggi';
+        if (score >= 40) return 'Sedang';
+        if (score >= 20) return 'Rendah';
+        return 'Sangat Rendah';
+      }
+
+      function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+      }
+
+      function hideError() {
+        document.getElementById('errorMessage').style.display = 'none';
+      }
+
+      function testWithExample(exampleText) {
+        document.getElementById('comment').value = exampleText;
+        analyzeEmotion();
+      }
+
+      // Load statistics on page load
+      async function loadStatistics() {
+        try {
+          const response = await fetch('/statistics/json');
+          const data = await response.json();
+
+          document.getElementById('totalAnalyses').textContent = data.total_analyses;
+
+          if (data.emotion_stats.happy) {
+            document.getElementById('avgHappy').textContent = data.emotion_stats.happy.average_score + '%';
+          }
+          if (data.emotion_stats.sad) {
+            document.getElementById('avgSad').textContent = data.emotion_stats.sad.average_score + '%';
+          }
+          if (data.emotion_stats.angry) {
+            document.getElementById('avgAngry').textContent = data.emotion_stats.angry.average_score + '%';
+          }
+        } catch (error) {
+          console.error('Error loading statistics:', error);
+        }
+      }
+
+      // Enter key support
+      document.getElementById('comment').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          analyzeEmotion();
+        }
+      });
+
+      // Load statistics and preprocessing table when page loads
+      function refreshAll() {
+        loadStatistics();
+        loadPreprocessingTable();
+
+        // Cek jika ada parameter analysis_id di URL (setelah upload CSV)
+        const urlParams = new URLSearchParams(window.location.search);
+        const analysisId = urlParams.get('analysis_id');
+
+        if (analysisId) {
+          // Load analisis spesifik berdasarkan ID
+          loadAnalysisById(parseInt(analysisId));
+          // Hapus parameter dari URL
+          window.history.replaceState({}, document.title, '/');
+        }
+      }
+
+      window.addEventListener('load', function () {
+        refreshAll();
+        // Jika ada data split terakhir dari upload CSV, tampilkan diagram
+        try {
+          const lastSplit = localStorage.getItem('last_split_counts');
+          if (lastSplit) {
+            populateSplitChart(JSON.parse(lastSplit));
+            localStorage.removeItem('last_split_counts');
+          }
+        } catch (e) {
+          console.log('no last_split_counts');
+        }
+
+        // Jika ada parameter csv_upload, refresh setelah delay
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('csv_upload')) {
+          window.history.replaceState({}, document.title, '/');
+          setTimeout(() => {
+            loadPreprocessingTable();
+            loadStatistics();
+          }, 200);
+        }
+      });
+
+      // Load recent preprocessing steps and populate table (max 5 latest)
+      async function loadPreprocessingTable() {
+        try {
+          const resp = await fetch('/history');
+          if (!resp.ok) return;
+          const data = await resp.json();
+          const history = data.history || [];
+
+          const tbody = document.querySelector('#preprocessTable tbody');
+          tbody.innerHTML = '';
+
+          // Take up to 20 latest entries (reverse to show newest first)
+          const latest = history.slice(-20).reverse();
+
+          latest.forEach((item, idx) => {
+            const no = idx + 1;
+            const p = item.preprocessing || {};
+            const cleaning = p.cleaning || '';
+            const tokenizing = Array.isArray(p.tokenizing) ? p.tokenizing.join(', ') : p.tokenizing || '';
+            const no_sw = Array.isArray(p.no_stopwords) ? p.no_stopwords.join(', ') : p.no_stopwords || '';
+            const stemming = Array.isArray(p.stemming) ? p.stemming.join(', ') : p.stemming || '';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:8px; border:1px solid #e0e0e0; vertical-align:top">${no}</td>
+              <td style="padding:8px; border:1px solid #e0e0e0; vertical-align:top">${escapeHtml(cleaning)}</td>
+              <td style="padding:8px; border:1px solid #e0e0e0; vertical-align:top">${escapeHtml(tokenizing)}</td>
+              <td style="padding:8px; border:1px solid #e0e0e0; vertical-align:top">${escapeHtml(no_sw)}</td>
+              <td style="padding:8px; border:1px solid #e0e0e0; vertical-align:top">${escapeHtml(stemming)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error('Error loading preprocessing table:', err);
+        }
+      }
+
+      // Small helper to escape HTML when inserting content
+      function escapeHtml(str) {
+        if (!str && str !== 0) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      // Populate split counts chart (train/test)
+      let splitChart = null;
+      function populateSplitChart(counts) {
+        try {
+          const el = document.getElementById('splitChart');
+          const placeholder = document.getElementById('splitChartPlaceholder');
+          if (!el) return;
+
+          const train = Number(counts.train || 0);
+          const test = Number(counts.test || 0);
+          const unknown = Number(counts.unknown || 0);
+
+          if (train === 0 && test === 0 && unknown === 0) {
+            // clear chart
+            if (splitChart) {
+              splitChart.destroy();
+              splitChart = null;
+            }
+            placeholder.textContent = 'Tidak ada data split untuk ditampilkan.';
+            return;
+          }
+
+          placeholder.textContent = '';
+
+          const data = {
+            labels: ['Latih', 'Uji', 'Tidak Terdeteksi'],
+            datasets: [
+              {
+                label: 'Jumlah Sampel',
+                backgroundColor: ['#4caf50', '#2196f3', '#9e9e9e'],
+                data: [train, test, unknown],
+              },
+            ],
+          };
+
+          const cfg = {
+            type: 'bar',
+            data: data,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true, precision: 0 } },
+            },
+          };
+
+          if (splitChart) splitChart.destroy();
+          splitChart = new Chart(el.getContext('2d'), cfg);
+        } catch (e) {
+          console.error('populateSplitChart error', e);
+        }
+      }
+
+      // Update table when another tab/window signals that history changed
+      window.addEventListener('storage', function (e) {
+        if (!e) return;
+        if (e.key === 'emo_history_updated' || e.key === 'csv_upload_completed') {
+          refreshAll();
+        }
+      });
+
+      // Also refresh when window gains focus (in case upload was done in another tab)
+      window.addEventListener('focus', function () {
+        // Check jika ada csv_upload_completed di localStorage
+        try {
+          const csvUploadTime = localStorage.getItem('csv_upload_completed');
+          if (csvUploadTime) {
+            refreshAll();
+            localStorage.removeItem('csv_upload_completed');
+          }
+        } catch (e) {
+          console.log('localStorage not available');
+        }
+      });
+
+      // Reset history (clear all stored analyses and statistics)
+      async function resetHistory() {
+        const ok = confirm('Yakin ingin menghapus semua riwayat dan statistik? Tindakan ini tidak dapat dikembalikan.');
+        if (!ok) return;
+
+        try {
+          const response = await fetch('/history/clear', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || result.message || 'Gagal menghapus riwayat');
+          }
+
+          // Update dashboard and UI to show cleared state
+          document.getElementById('totalAnalyses').textContent = 0;
+          document.getElementById('avgHappy').textContent = '0%';
+          document.getElementById('avgSad').textContent = '0%';
+          document.getElementById('avgAngry').textContent = '0%';
+
+          // Hide any results and show placeholder
+          const resultsDiv = document.getElementById('results');
+          const noResults = document.getElementById('noResults');
+          if (resultsDiv) resultsDiv.style.display = 'none';
+          if (noResults) noResults.style.display = 'block';
+
+          alert(result.message || 'Semua riwayat berhasil dihapus.');
+        } catch (error) {
+          console.error('Reset failed:', error);
+          alert('Gagal menghapus riwayat: ' + error.message);
+        }
+      }
+    </script>
+  </body>
+</html>
